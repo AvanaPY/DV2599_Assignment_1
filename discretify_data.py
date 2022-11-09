@@ -1,3 +1,10 @@
+# Blekinge Institute of Technology
+# Authors:
+#   Emil Karlström & Samuel Jonsson
+# Programme: DVAMI19h
+# Course: DV2599
+# Assignment 1
+
 import pandas as pd
 import numpy as np
 import math
@@ -10,7 +17,6 @@ def make_category(df : pd.DataFrame, col_name : str, new_df : pd.DataFrame, bins
 
 # Generates n^depth bins for an array of numbers by recursively 
 # splitting the array at the median and doing so to the two subsequent subarrays
-
 def generate_bins(lst : list, depth = 3, bins=None, start_index=None, end_index=None, insert_at=0):
 
     if bins is None:
