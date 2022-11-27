@@ -33,13 +33,13 @@ def generate_bins(lst : list, depth = 3, bins=None, start_index=None, end_index=
     generate_bins(lst, depth - 1, 
                     bins=bins, start_index=median_index, end_index=end_index, insert_at=insert_at)
 
-    bins.insert(insert_at, med)
+    if not (med in bins):
+        bins.insert(insert_at, med)
     return generate_bins(lst, depth - 1, bins=bins, start_index=start_index, end_index=median_index-1, insert_at=insert_at)
 
-def discretizise():
+def discretizise(freq_depth:int=3, capital_run_depth:int=3):
     df = pd.read_csv("spambase.csv")
     new_df = pd.DataFrame()
-
     bin_df = pd.DataFrame()
 
     # I don't know if nas exist but if nas no exist, now they not exist guarantee
@@ -51,7 +51,7 @@ def discretizise():
 
     for column in word_char_freq_cols:
         sorted_column = sorted(df[column].unique())
-        column_bins, labels = generate_bins(sorted_column, depth=3, bins=[0, max(sorted_column)+1], insert_at=1)
+        column_bins, labels = generate_bins(sorted_column, depth=freq_depth, bins=[0, max(sorted_column)+1], insert_at=1)
 
         bin_df[column] = [len(labels)]
 
@@ -62,17 +62,17 @@ def discretizise():
     # Discretizise the remaining columns
 
     sorted_capital_run = sorted(df["capital_run_length_average"].unique())
-    bins, labels = generate_bins(sorted_capital_run, depth=3, bins=[0, max(sorted_capital_run)+1], insert_at=1)
+    bins, labels = generate_bins(sorted_capital_run, depth=capital_run_depth, bins=[0, max(sorted_capital_run)+1], insert_at=1)
     make_category(df, "capital_run_length_average", new_df, bins=bins, labels=labels)
     bin_df["capital_run_length_average"] = [len(labels)]
 
     sorted_capital_run = sorted(df["capital_run_length_longest"].unique())
-    bins, labels = generate_bins(sorted_capital_run, depth=2, bins=[0, max(sorted_capital_run)+1], insert_at=1)
+    bins, labels = generate_bins(sorted_capital_run, depth=capital_run_depth, bins=[0, max(sorted_capital_run)+1], insert_at=1)
     make_category(df, "capital_run_length_longest", new_df, bins=bins, labels=labels)
     bin_df["capital_run_length_longest"] = [len(labels)]
 
     sorted_capital_run = sorted(df["capital_run_length_total"].unique())
-    bins, labels = generate_bins(sorted_capital_run, depth=2, bins=[0, max(sorted_capital_run)+1], insert_at=1)
+    bins, labels = generate_bins(sorted_capital_run, depth=capital_run_depth, bins=[0, max(sorted_capital_run)+1], insert_at=1)
     make_category(df, "capital_run_length_total", new_df, bins=bins, labels=labels)
     bin_df["capital_run_length_total"] = [len(labels)]
 
@@ -81,3 +81,13 @@ def discretizise():
     new_df["is_spam"] = df[category_column]
 
     return new_df, bin_df
+
+def training_validation_split(df : pd.DataFrame, ratio : float):
+    rnd_df = df.sample(frac=1, random_state=0).reset_index(drop=True)
+    
+    row_count = len(df.index)
+    train_count = int(row_count * (1 - ratio))
+
+    train_df = rnd_df.loc[0:train_count].reset_index(drop=True)
+    val_data = rnd_df.loc[train_count + 1:row_count].reset_index(drop=True)
+    return train_df, val_data

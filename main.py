@@ -5,24 +5,36 @@
 # Course: DV2599
 # Assignment 1
 
-from discretify_data import discretizise
-from daboi import daboi
-from classify import classify_with_hypothesis
-data_df, bins_df = discretizise()
+import pandas as pd
+import numpy as np
+from data import discretizise, training_validation_split
+from hypothesis import hypothesis
+from classify import classify
 
-is_spam = data_df["is_spam"]
-no_class_df = data_df.drop(columns=["is_spam"])
+freq_depth = 2
+capital_run_depth = 2
 
-H = daboi(data_df)
-print(H)
+data_df, bins_df = discretizise(freq_depth=freq_depth, 
+                                capital_run_depth=capital_run_depth)
 
-data_df["classified_as"] = classify_with_hypothesis(no_class_df, H)["class"]
-data_df["correct"] = data_df["classified_as"] == data_df["is_spam"]
-vc = data_df["correct"].value_counts()
-f = vc.loc[False]
-t = vc.loc[True]
+# Split data into training and validation data
+# This function also randomizes the rows
+train_data, validation_data = training_validation_split(data_df, ratio=0.95);
 
-print(vc)
-print(f'Accuracy: {t / (f + t) * 100:.2f}%')
+H = hypothesis(train_data)
 
-print(data_df)
+print(train_data)
+print(validation_data)
+
+validation_df = classify(validation_data, H)
+validation_train_df = classify(data_df, H)
+
+# Validation data metrics
+v = pd.crosstab(validation_df["is_spam"], validation_df["classified_as"], rownames=["Actual"], colnames=["Predicted"])
+print('Validation confusion matrix')
+print(v)
+
+# Full data metrics
+v = pd.crosstab(validation_train_df["is_spam"], validation_train_df["classified_as"], rownames=["Actual"], colnames=["Predicted"])
+print('Validation train confusion matrix')
+print(v)

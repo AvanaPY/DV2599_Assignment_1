@@ -7,11 +7,11 @@
 
 import pandas as pd
 
-def daboi(D : pd.DataFrame):
+def hypothesis(D : pd.DataFrame):
     x = D.iloc[0]
     H = instance_to_hypothesis(x)
     
-    for xi in range(1, min(D.shape[0], 50)): #TODO: Remove 50
+    for xi in range(1, D.shape[0]):
         x = D.iloc[xi]
         if x.loc["is_spam"] != 0:
             H = LGG_Conj(H, x)
